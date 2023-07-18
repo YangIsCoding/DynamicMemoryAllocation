@@ -1,0 +1,63 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#define BlockSize 4096
+//2 methods to get the input file size
+//1.lssek(fd , location,whence);
+//example: 1seek(fd,0,SEEK_END);leek(fd,10,SEEK_CURRENT);lseek(fd,0,SEEK_SET)
+//fileSize = lseek(fd.0,SEEK_END);
+void usage(char *progname){
+	fprintf(stderr,"%s inputFile\n",progname);
+	fprintf(stderr,"read data from inputfile then output to stdout\n");
+	exit(1);
+}
+
+int main(int argc,char **argv){
+	char inputFile[1024];
+	int fd;
+	int c;
+	int readSize;
+	//char buf[1024];
+	char *buf;
+	int offset;
+	int blockSize = BlockSize;
+	unsigned int fileSize;
+	struct stat stbuf;
+
+
+	if(argc==1){
+		usage(argv[0]);
+	}
+	strcpy(inputFile,argv[1]);
+	
+	fd = open(inputFile,O_RDONLY);
+	if(fd<0){
+		fprintf(stderr,"open error : %s",inputFile);
+		fprintf(stderr,"fd:%d\n",fd);
+		exit(1);
+	}
+	fstat(fd,&stbuf);
+	fileSize = stbuf.st_size;
+//	fileSize =lseek(fd,0,SEEK_END);
+	fprintf(stderr,"filesize:%d bytes\n",fileSize);
+//	exit(1);
+	buf =(char *)malloc(fileSize + 1);
+	if(buf == NULL){
+		fprintf(stderr,"malloc failed size :%d\n",fileSize);
+		exit(1);	
+	}
+	/*offset = 0;
+	while((readSize = read(fd,buf+offset,blockSize))>0){
+		fprintf(stderr,"readSize : %d\n",readSize);
+		offset += readSize;
+	}
+	buf[offset]='\0';*/
+//	lseek(fd,0,SEEK_SET);	
+	readSize = read(fd,buf,fileSize);
+	buf[fileSize]='\0';
+	write(1 , buf ,fileSize);
+	//printf("%s",buf);
+}
